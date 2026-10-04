@@ -1,0 +1,373 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Tickets</title>
+
+<link rel="stylesheet" href="{% static 'tickets/css/homepage.css' %}">
+
+<style>
+
+.ticket-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:25px;
+    padding:50px 80px;
+}
+
+.ticket-grid .event-card{
+    width:320px;
+}
+
+.ticket-modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+
+.ticket-design{
+    position:relative;
+    width:650px;
+    background:white;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+}
+
+.ticket-image{
+    width:100%;
+    height:220px;
+    object-fit:cover;
+}
+
+.ticket-body{
+    padding:25px;
+}
+
+.ticket-title{
+    font-size:22px;
+    font-weight:600;
+    margin-bottom:15px;
+}
+
+.ticket-info p{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:8px 0;
+    font-size:15px;
+}
+
+.ticket-info img{
+    width:18px;
+}
+
+.modal-seat{
+    margin-top:15px;
+    padding:12px;
+    background:#f4f4f4;
+    border-left:4px solid #007bff;
+    border-radius:6px;
+    font-weight:600;
+}
+
+.qr-box{
+    margin-top:20px;
+    text-align:center;
+}
+
+.close-modal{
+    position:absolute;
+    top:10px;
+    right:15px;
+    font-size:24px;
+    cursor:pointer;
+    font-weight:bold;
+    color:white;
+}
+
+.download-ticket-btn{
+    margin-top:20px;
+    padding:10px 20px;
+    background:#121c2b;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+@media print{
+    body *{
+        visibility:hidden;
+    }
+    #ticketContent, #ticketContent *{
+        visibility:visible;
+    }
+    #ticketContent{
+        position:absolute;
+        left:0;
+        top:0;
+        width:100%;
+    }
+}
+
+.vip-crown{
+    color: gold;
+    font-size:18px;
+    margin-left:6px;
+}
+
+.btn-details{
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+
+<div class="logo">
+<img src="{% static 'tickets/picture/logoudm.jpg' %}">
+</div>
+
+<ul class="nav-links">
+<li><a href="{% url 'tickets:home' %}">Home</a></li>
+<li><a href="{% url 'tickets:events' %}">Events</a></li>
+
+{% if user.is_authenticated %}
+<li><a href="{% url 'tickets:my_tickets' %}" class="active">My Tickets</a></li>
+{% endif %}
+
+<li><a href="{% url 'tickets:contact' %}">Contact</a></li>
+</ul>
+
+<div class="nav-icons">
+
+{% if user.is_authenticated and user.profile_picture %}
+<a href="{% url 'tickets:edit_profile' %}">
+<img src="{{ user.profile_picture.url }}" class="profile-icon">
+</a>
+
+{% else %}
+
+<a href="{% url 'tickets:login' %}">
+<img src="{% static 'tickets/picture/account.png' %}" class="profile-icon">
+</a>
+
+{% endif %}
+
+</div>
+
+</nav>
+
+<section>
+
+<h2 style="padding:50px 80px 0 80px;">
+My Booked Tickets
+</h2>
+<p>Total tickets: {{ tickets|length }}</p>
+
+<div class="ticket-grid">
+
+{% for ticket in tickets %}
+
+<div class="event-card">
+
+{% if ticket.event.image %}
+<img src="{{ ticket.event.image.url }}" class="event-image">
+{% else %}
+<img src="{% static 'tickets/picture/default.jpg' %}" class="event-image">
+{% endif %}
+
+<div class="event-content">
+
+<h3 class="event-title">
+    {{ ticket.event.title }}
+
+{% if ticket.ticket_type == "VIP" %}
+    <span class="vip-crown">👑</span>
+{% endif %}
+</h3>
+
+<div class="event-info">
+
+<p>
+<img src="{% static 'tickets/picture/calendar.png' %}">
+{{ ticket.event.event_datetime|date:"M d, Y" }}
+</p>
+
+<p>
+<img src="{% static 'tickets/picture/clock.png' %}">
+{{ ticket.event.event_datetime|time:"H:i" }}
+
+{% if ticket.event.end_time %}
+- {{ ticket.event.end_time|time:"H:i" }}
+{% endif %}
+</p>
+
+<p>
+<img src="{% static 'tickets/picture/building.png' %}">
+{{ ticket.event.campus|default_if_none:"Campus TBA" }}
+</p>
+
+<p>
+<img src="{% static 'tickets/picture/location.png' %}">
+{{ ticket.event.location|default_if_none:"Location TBA" }}
+</p>
+
+<p>
+<img src="{% static 'tickets/picture/rscoin.png' %}">
+Rs {{ ticket.price }}
+</p>
+
+<p>
+🎟 Seat: {{ ticket.seat.seat_number }}
+</p>
+
+</div>
+
+<button class="btn-details"
+
+data-title="{{ ticket.event.title|escapejs }}"
+data-date="{{ ticket.event.event_datetime|date:'M d, Y' }}"
+data-start="{{ ticket.event.event_datetime|time:'H:i' }}"
+data-end="{{ ticket.event.end_time|time:'H:i' }}"
+data-campus="{{ ticket.event.campus|escapejs }}"
+data-location="{{ ticket.event.location|escapejs }}"
+data-price="{{ ticket.price }}"
+data-seat="{{ ticket.seat.seat_number }}"
+
+data-image="{% if ticket.event.image %}{{ ticket.event.image.url }}{% else %}{% static 'tickets/picture/default.jpg' %}{% endif %}"
+
+onclick="openTicketModal(this)">
+
+View Ticket
+
+</button>
+
+</div>
+</div>
+
+{% empty %}
+
+<p style="padding:40px;">
+You have not booked any tickets yet.
+</p>
+
+{% endfor %}
+
+</div>
+
+</section>
+
+<div id="ticketModal" class="ticket-modal">
+
+<div class="ticket-design" id="ticketContent">
+
+<span class="close-modal" onclick="closeTicketModal()">×</span>
+
+<img id="modalImage" class="ticket-image">
+
+<div class="ticket-body">
+
+<h2 id="modalTitle" class="ticket-title"></h2>
+
+<div class="ticket-info">
+
+<p><img src="{% static 'tickets/picture/calendar.png' %}">
+<span id="modalDate"></span></p>
+
+<p><img src="{% static 'tickets/picture/clock.png' %}">
+<span id="modalTime"></span></p>
+
+<p><img src="{% static 'tickets/picture/building.png' %}">
+<span id="modalCampus"></span></p>
+
+<p><img src="{% static 'tickets/picture/location.png' %}">
+<span id="modalLocation"></span></p>
+
+<p><img src="{% static 'tickets/picture/rscoin.png' %}">
+Rs <span id="modalPrice"></span></p>
+
+</div>
+
+<div class="modal-seat">
+🎟 Seat: <span id="modalSeat"></span>
+</div>
+
+<div class="qr-box" id="qrCode"></div>
+
+<button onclick="downloadTicket()" class="download-ticket-btn">
+Download as PDF
+</button>
+
+</div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+
+function openTicketModal(button){
+
+const start = button.dataset.start;
+const end = button.dataset.end;
+
+let fullTime = start;
+
+if(end){
+fullTime = start + " - " + end;
+}
+
+document.getElementById("modalTitle").innerText = button.dataset.title;
+document.getElementById("modalDate").innerText = button.dataset.date;
+document.getElementById("modalTime").innerText = fullTime;
+document.getElementById("modalCampus").innerText = button.dataset.campus;
+document.getElementById("modalLocation").innerText = button.dataset.location;
+document.getElementById("modalPrice").innerText = button.dataset.price;
+document.getElementById("modalSeat").innerText = button.dataset.seat;
+document.getElementById("modalImage").src = button.dataset.image;
+
+const qrBox = document.getElementById("qrCode");
+qrBox.innerHTML = "";
+
+new QRCode(qrBox,{
+text: button.dataset.title + " | Seat " + button.dataset.seat,
+width:120,
+height:120
+});
+
+document.getElementById("ticketModal").style.display="flex";
+
+}
+
+function closeTicketModal(){
+document.getElementById("ticketModal").style.display="none";
+}
+
+function downloadTicket(){
+window.print();
+}
+
+window.onclick=function(e){
+if(e.target.id==="ticketModal"){
+closeTicketModal();
+}
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | University Ticketing System</title>
+    <link rel="stylesheet" href="{% static 'tickets/css/login.css' %}">
+
+    <style>
+        /* Error message above form */
+        .login-error {
+            color: #ff4d4f; /* red text for the message only */
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        /* Input fields with error: red background inside, text stays black */
+        .input-error {
+            background-color: #ffcccc; /* light red inside */
+            color: #000; /* text stays black */
+        }
+
+        .input-error:focus {
+            outline: none;
+            box-shadow: 0 0 5px #ffcccc; /* optional subtle glow */
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <!-- IMAGE ON TOP -->
+    <img src="{% static 'tickets/picture/TicketPicLogin.jpg' %}" alt="Login Image" class="login-img">
+
+    <!-- LOGIN FORM -->
+    <div class="login-form">
+        <h2>Login</h2>
+
+        <!-- Error message -->
+        {% if error %}
+            <p class="login-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="{% url 'tickets:login' %}">
+            {% csrf_token %}
+
+            <!-- Email Input -->
+            <div class="form-group">
+                <label for="id_username">Email</label>
+                <input type="text" name="username" id="id_username" 
+                       placeholder="Enter your email" 
+                       value="{{ username|default_if_none:'' }}"
+                       class="{% if error %}input-error{% endif %}" 
+                       required>
+            </div>
+
+            <!-- Password Input -->
+            <div class="form-group">
+                <label for="id_password">Password</label>
+                <input type="password" name="password" id="id_password" 
+                       placeholder="Enter your password" 
+                       class="{% if error %}input-error{% endif %}" 
+                       required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

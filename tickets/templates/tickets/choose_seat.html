@@ -1,0 +1,261 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>{{ event.title }} Seats</title>
+
+<style>
+
+:root{
+    --bg-dark:#1f2a38;
+    --bg-light:#2c3a4a;
+    --available:#c6a87d;
+    --vip-dark:#b8963f;
+    --vip-mid:#d4af37;
+    --vip-light:#f3e2a9;
+    --booked:#999;
+    --selected:#1f2a38;
+}
+
+/* PAGE */
+
+body{
+    margin:0;
+    background:linear-gradient(135deg,var(--bg-dark),var(--bg-light));
+    font-family:Arial, sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:40px;
+    color:white;
+}
+
+/* STAGE */
+
+.stage-wrapper{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.screen{
+    background:#eee;
+    color:black;
+    width:60%;
+    padding:15px;
+    border-radius:10px;
+    margin:auto;
+    font-weight:bold;
+    letter-spacing:3px;
+}
+
+/* SEATING */
+
+.seating-area{
+    margin-top:40px;
+}
+
+.row{
+    display:flex;
+    align-items:center;
+    margin-bottom:10px;
+}
+
+.row-label{
+    width:25px;
+    margin-right:10px;
+    font-weight:bold;
+}
+
+/* SEAT BASE */
+
+.seat{
+    width:45px;
+    height:45px;
+    margin:4px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.2s;
+    position:relative;
+}
+
+/* NORMAL SEAT */
+
+.available{
+    background:linear-gradient(
+        to bottom,
+        #e1c69f,
+        #c6a87d
+    );
+}
+
+/* OLD MONEY VIP SEAT */
+
+.vip{
+    background:linear-gradient(
+        180deg,
+        var(--vip-light),
+        var(--vip-mid),
+        var(--vip-dark)
+    );
+    color:#3b2b00;
+    border:2px solid #e6d28c;
+    box-shadow:
+        inset 0 2px 4px rgba(255,255,255,0.5),
+        inset 0 -3px 6px rgba(0,0,0,0.25),
+        0 3px 6px rgba(0,0,0,0.3);
+}
+
+/* crown */
+
+.vip::after{
+    content:"👑";
+    position:absolute;
+    top:-6px;
+    right:-6px;
+    font-size:12px;
+}
+
+/* BOOKED */
+
+.booked{
+    background:var(--booked);
+    cursor:not-allowed;
+}
+
+/* SELECTED */
+
+.selected{
+    background:var(--selected);
+    color:white;
+}
+
+/* HOVER */
+
+.seat:hover:not(.booked){
+    transform:scale(1.08);
+}
+
+/* BUTTON */
+
+button{
+    margin-top:25px;
+    padding:10px 20px;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* LEGEND */
+
+.legend{
+    display:flex;
+    gap:20px;
+    margin-top:25px;
+}
+
+.legend span{
+    width:20px;
+    height:20px;
+    border-radius:4px;
+    display:inline-block;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>🎟 Seat Selection for {{ event.title }}</h2>
+
+<h3 id="selectedSeatDisplay">Selected Seat: None</h3>
+
+<div class="stage-wrapper">
+<div>⬇ FRONT OF STAGE ⬇</div>
+<div class="screen">STAGE</div>
+</div>
+
+<form method="POST">
+{% csrf_token %}
+
+<div class="seating-area">
+
+{% for row, seats in seat_rows.items %}
+<div class="row">
+
+<div class="row-label">{{ row }}</div>
+
+{% for seat in seats %}
+
+<div
+class="seat
+{% if seat.ticket_type == 'VIP' %}vip{% endif %}
+{% if seat.id in booked_seats %} booked {% else %} available {% endif %}"
+data-seat-id="{{ seat.id }}"
+data-seat-number="{{ seat.seat_number }}"
+>
+
+{{ seat.seat_number|slice:"1:" }}
+
+</div>
+
+{% endfor %}
+
+</div>
+{% endfor %}
+
+</div>
+
+<input type="hidden" name="seat_id" id="seat_id_input">
+
+<button type="submit">Confirm Seat</button>
+
+</form>
+
+<div class="legend">
+<div><span style="background:#d4af37"></span> VIP</div>
+<div><span style="background:#c6a87d"></span> Available</div>
+<div><span style="background:#999"></span> Booked</div>
+<div><span style="background:#1f2a38"></span> Selected</div>
+</div>
+
+<script>
+
+let selectedSeat = null;
+
+// Attach click event to all available seats
+document.querySelectorAll(".seat.available").forEach(seat => {
+
+seat.addEventListener("click", function(){
+
+    // Remove previous selection
+document.querySelectorAll(".selected")
+.forEach(s => s.classList.remove("selected"));
+
+// Mark new seat as selected
+seat.classList.add("selected");
+
+ // Store selected seat ID
+selectedSeat = seat.dataset.seatId;
+
+// Update hidden input (sent to backend)
+document.getElementById("seat_id_input").value = selectedSeat;
+
+// Update UI display for user feedback
+document.getElementById("selectedSeatDisplay").innerText =
+"Selected Seat: " + seat.dataset.seatNumber;
+
+});
+
+});
+
+</script>
+
+</body>
+</html>

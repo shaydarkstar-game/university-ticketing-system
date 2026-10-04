@@ -1,0 +1,972 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>University Ticketing System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'tickets/css/homepage.css' %}">
+
+    <style>
+        /* ===== Trending Event Cards Grid ===== */
+        .events-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: flex-start;
+            padding: 20px 80px; /* add some spacing */
+        }
+
+        /* Event Card (same as events page) */
+        .event-card {
+            background-color: #121c2b;
+            color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+        }
+
+        .event-image {
+            width: 100%;
+            height: 190px;
+            object-fit: cover;
+        }
+
+        .event-content {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex: 1;
+        }
+
+        .event-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .event-info p {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            margin: 6px 0;
+            opacity: 0.9;
+        }
+
+        .event-info img {
+            width: 18px;
+        }
+
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 14px 0;
+        }
+
+        .price {
+            font-size: 18px;
+            font-weight: 600;
+            color: #7fffd4;
+            display: flex;
+            align-items: center;
+        }
+
+        .price img {
+            width: 18px;
+            margin-right: 4px;
+        }
+
+        .tickets-left {
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .event-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-book {
+            flex: 1;
+            background-color: #ffffff;
+            color: darkblue;
+            border: none;
+            padding: 10px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-book:hover {
+            background-color: #f2f2f2;
+            transform: translateY(-2px);
+        }
+
+        /* Sold Out button */
+.btn-book:disabled {
+    background-color: #ff4d4f;  /* red */
+    color: #ffffff;              /* white text */
+    cursor: not-allowed;
+}
+
+/* Already booked button */
+.btn-book.booked {
+    background-color: #555;      /* gray */
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+        .btn-details {
+            flex: 1;
+            background-color: #d5ba90;
+            color: #ffffff;
+            border: none;
+            padding: 10px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-details:hover {
+            background-color: #c4a472;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 900px) {
+            .events-grid {
+                justify-content: center;
+                padding: 20px;
+            }
+            .event-card {
+                flex: 1 1 100%;
+                max-width: 100%;
+            }
+        }
+
+        /* ===== MODAL ===== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    padding: 30px;
+    width: 500px;
+    max-width: 90%;
+    border-radius: 12px;
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content h2 {
+    margin-bottom: 15px;
+    color: #121c2b;
+}
+
+.modal-content p {
+    color: #333;
+    line-height: 1.6;
+}
+
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 22px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+@keyframes fadeIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+
+
+
+
+
+.slideshow-container {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    margin: 50px 0;
+    overflow: hidden;
+    border-radius: 15px;
+    background: #000;
+}
+
+/* Slides */
+.slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+/* Active slide */
+.slide.active {
+    opacity: 1;
+}
+
+/* IMAGE FIX (IMPORTANT) */
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* CHANGE TO 'contain' if still too zoomed */
+}
+
+/* Overlay */
+.overlay {
+    position: absolute;
+    bottom: 40px;
+    left: 50px;
+    color: white;
+    max-width: 500px;
+    opacity: 1;
+    transform: translateY(20px);
+    transition: all 0.8s ease;
+
+    /* Subtle glass effect */
+    background: rgba(0, 0, 0, 0.25);
+    padding: 20px 25px;
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+}
+
+.slide.active .overlay {
+    
+    transform: translateY(0);
+}
+
+.overlay h2 {
+    font-size: 30px;
+    margin-bottom: 10px;
+
+     /* Old money gold tone */
+    color: #f5e6c8;
+
+    /* Make it stand out */
+    text-shadow: 
+        0 2px 10px rgba(0,0,0,0.8),
+        0 0 15px rgba(213,186,144,0.6);
+
+    letter-spacing: 0.5px;
+     /* Italic style & Playfair font for elegance */
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+}
+
+/* DESCRIPTION */
+.overlay p {
+    
+    font-size: 17px;
+
+    color: #ffffff;
+
+    /* soft glow */
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+
+    opacity: 0.95;
+     /* Italic & readable font */
+    font-family: 'Poppins', sans-serif;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+/* Dark gradient */
+.slide::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Softer, more elegant gradient */
+    background: linear-gradient(
+        to right,
+        rgba(0,0,0,0.35),
+        rgba(0,0,0,0.05)
+    );
+}
+
+/* ARROWS */
+.arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.4);
+    border: none;
+    color: white;
+    font-size: 28px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 50%;
+    z-index: 5;
+}
+
+.arrow.left { left: 15px; }
+.arrow.right { right: 15px; }
+
+/* DOTS */
+.dots {
+    position: absolute;
+    bottom: 15px;
+    width: 100%;
+    text-align: center;
+}
+
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 5px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.dot.active {
+    background: white;
+    transform: scale(1.2);
+}
+
+
+
+
+.category-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+/* BASE BUTTON STYLE */
+.btn-dashboard {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+/* TRENDING BUTTON */
+.btn-trending {
+    background: #ffffff;
+    color: #0b1d3a; /* deep dark blue */
+    border: 1px solid #0b1d3a;
+}
+
+.btn-trending:hover {
+    background: #0b1d3a;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11,29,58,0.3);
+}
+
+
+/* 🎯 LIMITED BUTTON (URGENT RED) */
+.btn-limited {
+    background: #e63946; /* strong elegant red */
+    color: #ffffff;
+    border: none;
+}
+
+.btn-limited:hover {
+    background: #c1121f; /* deeper rich red */
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(230,57,70,0.4);
+}
+
+
+    </style>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar">
+    <div class="logo">
+        <img src="{% static 'tickets/picture/logoudm.jpg' %}" alt="University Logo">
+    </div>
+
+    <ul class="nav-links">
+        <li><a href="{% url 'tickets:home' %}" class="active">Home</a></li>
+        <li><a href="{% url 'tickets:events' %}">Events</a></li>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'tickets:my_tickets' %}">My Tickets</a></li>
+        {% endif %}
+        <li><a href="{% url 'tickets:contact' %}">Contact</a></li>
+    </ul>
+
+<div class="nav-icons">
+
+{% if user.is_authenticated and user.profile_picture %}
+
+    <a href="{% url 'tickets:edit_profile' %}">
+        <img src="{{ user.profile_picture.url }}" 
+             class="profile-icon" 
+             alt="Profile">
+    </a>
+
+{% else %}
+
+    <a href="{% url 'tickets:login' %}">
+        <img src="{% static 'tickets/picture/account.png' %}" 
+             class="profile-icon" 
+             alt="Account">
+    </a>
+
+{% endif %}
+
+</div>
+   
+</nav>
+<section class="dashboard" style="
+    position:relative;
+    max-width:1350px;
+    height:80vh;
+    margin:30px auto;
+    display:flex;
+    align-items:center;
+    padding:0 80px;
+    border-radius:18px;
+    overflow:hidden;
+">
+
+    <!-- 🎥 Video Background -->
+    <video autoplay muted playsinline 
+        style="
+        position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+object-fit:cover;
+z-index:0;
+    ">
+        <source src="{% static 'tickets/picture/dash3.mp4' %}" type="video/mp4">
+    </video>
+
+
+    <!-- Content -->
+    <div class="dashboard-content" style="position:relative; z-index:2; color:white; margin-top:10px; margin-left:60px;">
+        {% if user.is_authenticated %}
+            <h1>Welcome, {{ user.username }}! 👋</h1>
+        {% else %}
+            <h1>Welcome</h1>
+        {% endif %}
+
+        <h2>Ready to book?</h2>
+        <p class="tagline">Explore Events and grab your Tickets! 😎</p>
+
+        <div class="dashboard-buttons">
+            <a href="{% url 'tickets:events' %}" class="btn-browseEvent">
+                <img src="{% static 'tickets/picture/searchIcon.png' %}" alt="Browse">
+                Browse Events
+            </a>
+
+             <a href="#trending" class="btn-dashboard btn-trending">
+        🔥 Trending Events
+    </a>
+
+    <a href="#limited" class="btn-dashboard btn-limited">
+        🎯 Limited Offers
+    </a>
+
+        </div>
+    </div>
+
+</section>
+
+{% load static %}
+
+
+<div class="slideshow-container" id="slideshow">
+
+    <!-- Slide 1 -->
+    <div class="slide active">
+        <img src="{% static 'tickets/picture/slide17.jpg' %}">
+        <div class="overlay">
+            <h2 style="
+    color: #2f3e46; 
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 32px;
+    letter-spacing: 0.5px;
+
+    text-shadow: 0 2px 6px rgba(0,0,0,0.15);
+">
+    Welcome to a New Era of Campus Experiences 🎶
+</h2>
+
+<p style="
+    color: #3a4a52;
+    font-family: 'Poppins', sans-serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.6;
+
+    text-shadow: 0 1px 4px rgba(0,0,0,0.1);
+">
+    Bringing students, lecturers, and staff together through exceptional events.
+</p>
+        </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide">
+        <img src="{% static 'tickets/picture/slide2.png' %}">
+        <div class="overlay">
+            <h2>Events for Every Member of the Campus</h2>
+            <p>From academic talks to social gatherings - there’s something for everyone</p>
+        </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide">
+        <img src="{% static 'tickets/picture/slide42.jpg' %}">
+        <div class="overlay">
+            <h2>Experience Events, Differently</h2>
+            <p>Choose your own seats . VIP seat offer available !</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <img src="{% static 'tickets/picture/slide77.png' %}">
+        <div class="overlay">
+            <h2>Limited seats </h2>
+            <p>Choose your seat as they are limited </p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <img src="{% static 'tickets/picture/slide 44.png' %}">  
+        <div class="overlay">
+            <h2>Don't miss the limited time offer  🏆</h2>
+            <p>Exclusive limited time offer </p>
+        </div>
+    </div>
+
+  
+
+    <!-- Arrows -->
+    <button class="arrow left" onclick="prevSlide()">❮</button>
+    <button class="arrow right" onclick="nextSlide()">❯</button>
+
+    <!-- Dots -->
+    <div class="dots"></div>
+
+</div>
+
+<!-- ================= TRENDING EVENTS GRID ================= -->
+<section id="trending" class="events-section">
+    <h2 class="category-title" style="margin-left: 80px;">🔥Trending Events</h2>
+    <div class="events-grid">
+        {% for event in trending_events %}
+            <div class="event-card">
+
+                {% if event.image %}
+                    <img src="{{ event.image.url }}" class="event-image">
+                {% else %}
+                    <img src="{% static 'tickets/picture/default.jpg' %}" class="event-image">
+                {% endif %}
+
+                <div class="event-content">
+
+                    <h3 class="event-title">{{ event.title }}</h3>
+
+                    <div class="event-info">
+    <p>
+        <img src="{% static 'tickets/picture/calendar.png' %}" alt="Date Icon">
+        {{ event.event_datetime|date:"M d, Y" }}
+    </p>
+    <p>
+        <img src="{% static 'tickets/picture/clock.png' %}" alt="Clock Icon">
+        {{ event.event_datetime|time:"H:i" }}
+        {% if event.end_time %}
+            - {{ event.end_time|time:"H:i" }}
+        {% else %}
+            - TBD
+        {% endif %}
+    </p>
+    <p>
+        <img src="{% static 'tickets/picture/building.png' %}" alt="Campus Icon">
+        {{ event.campus }}
+    </p>
+    <p>
+        <img src="{% static 'tickets/picture/location.png' %}" alt="Location Icon">
+        {{ event.location }}
+    </p>
+</div>
+
+                    
+
+                    <div class="event-footer">
+                        <span class="price">
+                            <img src="{% static 'tickets/picture/rscoin.png' %}">
+                            Rs {{ event.price }}
+                        </span>
+
+                        <span class="tickets-left {% if event.tickets_left <= 5 %}low-seats{% endif %}">
+    {% if event.tickets_left > 0 %}
+        {% if event.tickets_left <= 5 %}
+            {{ event.tickets_left }} left!
+        {% else %}
+            {{ event.tickets_left }} seats left
+        {% endif %}
+    {% endif %}
+</span>
+                    </div>
+
+                   <div class="event-buttons">
+    {% if event.tickets_left <= 0 %}
+        <button class="btn-book" disabled>Sold Out</button>
+    {% elif event.is_booked %}
+        <button class="btn-book booked"  disabled>Booked</button>
+    {% else %}
+        <a href="{% url 'tickets:book_event' event.id %}" class="btn-book"  style="text-decoration: none;">Book</a>
+    {% endif %}
+   <button 
+    type="button"
+    class="btn-details open-modal"
+    data-title="{{ event.title }}"
+    data-description="{{ event.description|escapejs }}">
+    More Details
+</button>
+</div>
+
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+
+<!-- ================= LIMITED OFFER EVENTS ================= -->
+<section id="limited" class="events-section">
+    <h2 class="category-title" style="margin-left: 80px; color:#d5ba90;">
+       🎯 Limited Offer Events 
+    </h2>
+
+    <div class="events-grid">
+        {% for event in limited_events %}
+            <div class="event-card">
+
+                {% if event.image %}
+                    <img src="{{ event.image.url }}" class="event-image">
+                {% else %}
+                    <img src="{% static 'tickets/picture/default.jpg' %}" class="event-image">
+                {% endif %}
+
+                <div class="event-content">
+
+                    <h3 class="event-title">{{ event.title }}</h3>
+
+                    <div class="event-info">
+                        <p>
+                            <img src="{% static 'tickets/picture/calendar.png' %}">
+                            {{ event.event_datetime|date:"M d, Y" }}
+                        </p>
+                        <p>
+                            <img src="{% static 'tickets/picture/clock.png' %}">
+                            {{ event.event_datetime|time:"H:i" }}
+                            {% if event.end_time %}
+                                - {{ event.end_time|time:"H:i" }}
+                            {% else %}
+                                - TBD
+                            {% endif %}
+                        </p>
+                        <p>
+                            <img src="{% static 'tickets/picture/building.png' %}">
+                            {{ event.campus }}
+                        </p>
+                        <p>
+                            <img src="{% static 'tickets/picture/location.png' %}">
+                            {{ event.location }}
+                        </p>
+                    </div>
+
+                    <div class="event-footer">
+                       <span class="price">
+    {% if event.discount_price and event.discount_end %}
+       
+
+        <span class="original-price" style="text-decoration:line-through;color:#bbb;">
+            Rs {{ event.price }}
+        </span>
+
+        <span class="discount-price" style="color:#00ff9d;font-weight:bold;margin-left:5px;">
+            Rs {{ event.discount_price }}
+        </span>
+
+        <!-- Countdown timer -->
+        <p class="countdown"
+           data-end="{{ event.discount_end|date:'Y-m-d\\TH:i:s' }}"
+           style="color:#ffcc00;font-size:13px; margin-top:5px;">
+        </p>
+    {% else %}
+        <span class="original-price">
+            Rs {{ event.price }}
+        </span>
+    {% endif %}
+</span>
+
+                        <span class="tickets-left {% if event.tickets_left <= 5 %}low-seats{% endif %}">
+                            {% if event.tickets_left > 0 %}
+                                {% if event.tickets_left <= 5 %}
+                                    {{ event.tickets_left }} left!
+                                {% else %}
+                                    {{ event.tickets_left }} seats left
+                                {% endif %}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="event-buttons">
+                        {% if event.tickets_left <= 0 %}
+                            <button class="btn-book" disabled>Sold Out</button>
+                        {% elif event.is_booked %}
+                            <button class="btn-book booked" disabled>Booked</button>
+                        {% else %}
+                            <a href="{% url 'tickets:book_event' event.id %}" class="btn-book" style="text-decoration:none;">Book</a>
+                        {% endif %}
+
+                        <button 
+                            type="button"
+                            class="btn-details open-modal"
+                            data-title="{{ event.title }}"
+                            data-description="{{ event.description|escapejs }}">
+                            More Details
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer class="site-footer">
+    <div class="footer-content">
+
+        <div class="logo">
+            <img src="{% static 'tickets/picture/logoudm.jpg' %}" alt="University Logo">
+        </div>
+
+        <div class="footer-left">
+            <h4>Université des Mascareignes</h4>
+            <p>
+                © 2026 Ticket Hub. All Rights Reserved.<br>
+                Making campus events accessible to every student.
+            </p>
+        </div>
+
+        <div class="footer-center">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="{% url 'tickets:home' %}">Home</a></li>
+                <li><a href="{% url 'tickets:events' %}">Events</a></li>
+                <li><a href="{% url 'tickets:contact' %}">Contact</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-right">
+            <h4>Follow Us</h4>
+            <div class="social-icons">
+    <a href="https://www.facebook.com" target="_blank">
+        <img src="{% static 'tickets/picture/facebook.png' %}">
+    </a>
+
+    <a href="https://www.instagram.com" target="_blank">
+        <img src="{% static 'tickets/picture/instagram.png' %}">
+    </a>
+
+    <a href="https://www.twitter.com" target="_blank">
+        <img src="{% static 'tickets/picture/twitter.png' %}">
+    </a>
+</div>
+        </div>
+
+    </div>
+</footer>
+
+<!-- EVENT DETAILS MODAL -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <p id="modalDescription"></p>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // ===== EVENT MODAL LOGIC =====
+    const modal = document.getElementById("eventModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalDescription = document.getElementById("modalDescription");
+    const closeBtn = document.querySelector(".close-btn");
+
+    document.querySelectorAll(".open-modal").forEach(button => {
+        button.addEventListener("click", function() {
+            modalTitle.textContent = this.dataset.title;
+            modalDescription.textContent = this.dataset.description;
+            modal.style.display = "flex";
+        });
+    });
+
+    closeBtn.addEventListener("click", function() {
+        modal.style.display = "none";
+    });
+
+    window.addEventListener("click", function(e) {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+
+    // ===== SLIDESHOW LOGIC =====
+    const slides = document.querySelectorAll(".slide");
+    const dotsContainer = document.querySelector(".dots");
+    const container = document.getElementById("slideshow");
+    let currentSlide = 0;
+    let interval;
+
+    // CREATE DOTS
+    slides.forEach((_, index) => {
+        const dot = document.createElement("span");
+        dot.classList.add("dot");
+        dot.addEventListener("click", () => goToSlide(index));
+        dotsContainer.appendChild(dot);
+    });
+
+    const dots = document.querySelectorAll(".dot");
+
+    // SHOW SLIDE
+    function showSlide(index) {
+        slides.forEach(slide => slide.classList.remove("active"));
+        dots.forEach(dot => dot.classList.remove("active"));
+
+        currentSlide = index;
+        slides[currentSlide].classList.add("active");
+        dots[currentSlide].classList.add("active");
+    }
+
+    // NEXT / PREV
+    function nextSlide() {
+        showSlide((currentSlide + 1) % slides.length);
+    }
+
+    function prevSlide() {
+        showSlide((currentSlide - 1 + slides.length) % slides.length);
+    }
+
+    function goToSlide(index) {
+        showSlide(index);
+    }
+
+    // AUTO PLAY
+    function startAutoSlide() {
+        interval = setInterval(nextSlide, 4000);
+    }
+
+    function stopAutoSlide() {
+        clearInterval(interval);
+    }
+
+    // PAUSE ON HOVER
+    container.addEventListener("mouseenter", stopAutoSlide);
+    container.addEventListener("mouseleave", startAutoSlide);
+
+    // INIT
+    showSlide(0);
+    startAutoSlide();
+
+    // OPTIONAL: ARROW BUTTONS
+    const leftArrow = container.querySelector(".arrow.left");
+    const rightArrow = container.querySelector(".arrow.right");
+
+    if (leftArrow && rightArrow) {
+        leftArrow.addEventListener("click", prevSlide);
+        rightArrow.addEventListener("click", nextSlide);
+    }
+
+});
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    function updateCountdowns() {
+        document.querySelectorAll('.countdown').forEach(el => {
+            const endTime = new Date(el.dataset.end).getTime();
+            const distance = endTime - Date.now();
+            const card = el.closest(".event-card");
+            const originalPrice = card.querySelector(".original-price");
+            const discountPrice = card.querySelector(".discount-price");
+
+            if (distance <= 0) {
+                el.textContent = "Offer ended";
+                if (originalPrice) {
+                    originalPrice.style.textDecoration = "none";
+                    originalPrice.style.color = "#7fffd4";
+                }
+                if (discountPrice) discountPrice.remove();
+            } else {
+                const days = Math.floor(distance / (1000*60*60*24));
+                const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+                const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
+                const seconds = Math.floor((distance % (1000*60)) / 1000);
+
+                el.textContent = `${days > 0 ? days + "d " : ""}⏳ ${hours}h ${minutes}m ${seconds}s`;
+            }
+        });
+    }
+
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+});
+
+</script>
+
+
+
+</body>
+</html>

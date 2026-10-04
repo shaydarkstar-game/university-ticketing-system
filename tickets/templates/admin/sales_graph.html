@@ -1,0 +1,44 @@
+<!-- templates/admin/sales_graph.html -->
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>Sales Graph: {{ event.title }}</h1>
+<p>Tickets sold per day</p>
+
+<canvas id="salesChart" width="800" height="400"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const salesData = {{ sales_data|safe }};
+    const labels = Object.keys(salesData);
+    const data = Object.values(salesData);
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tickets Sold',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: true },
+                title: {
+                    display: true,
+                    text: 'Sales by Day'
+                }
+            },
+            scales: {
+                y: { beginAtZero: true },
+                x: { ticks: { autoSkip: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

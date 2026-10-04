@@ -1,0 +1,425 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Book Event - {{ event.title }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Cormorant+Garamond:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --deep-blue:#1f2a38;
+    --charcoal-blue:#2c3a4a;
+    --coffee:#c6a87d;
+    --soft-cream:#f5efe6;
+}
+
+body{
+    margin:0;
+    background:linear-gradient(135deg,var(--deep-blue),var(--charcoal-blue));
+    font-family:'Cormorant Garamond',serif;
+}
+
+.booking-container{
+    max-width:900px;
+    margin:60px auto;
+    background:var(--soft-cream);
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 25px 60px rgba(0,0,0,0.4);
+}
+
+.event-image-header{
+    width:100%;
+    height:250px;
+    object-fit:cover;
+}
+
+.booking-content{
+    padding:40px;
+}
+
+h2{
+    font-family:'Playfair Display',serif;
+    color:var(--deep-blue);
+    margin-bottom:20px;
+}
+
+.event-summary p{
+    margin:8px 0;
+    font-size:17px;
+}
+
+/* Seat Display */
+.seat-display{
+    text-align:center;
+    font-family:'Playfair Display',serif;
+    font-size:20px;
+    color:var(--deep-blue);
+    margin:20px 0;
+    padding:10px;
+    background:#e8dfd2;
+    border-radius:10px;
+}
+
+/* Payment Section */
+.payment-methods{
+    display:flex;
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.payment-option input{
+    margin-right:8px;
+}
+
+form input{
+    width:100%;
+    padding:12px;
+    margin-bottom:20px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-family:'Cormorant Garamond',serif;
+}
+
+.expiry-cvv{
+    display:flex;
+    gap:45px; /* <-- BIGGER SPACE BETWEEN THEM */
+}
+
+.expiry-cvv div{
+    flex:1;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:8px;
+    background:var(--deep-blue);
+    color:white;
+    font-family:'Playfair Display',serif;
+    font-size:17px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:var(--coffee);
+    color:var(--deep-blue);
+}
+
+.messages{
+    background:#f4d7d7;
+    padding:10px;
+    border-radius:8px;
+    margin-bottom:20px;
+}
+
+/* Payment Option Layout */
+.payment-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.payment-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 16px;
+}
+
+/* Logos */
+.card-logos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-logos img {
+    height: 24px;
+    width: auto;
+    object-fit: contain;
+}
+
+
+
+
+#overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    z-index:999;
+}
+
+#popup{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:#f5efe6;
+    padding:30px;
+    border-radius:12px;
+    z-index:1000;
+    width:400px;
+    text-align:center;
+}
+
+
+
+
+
+
+
+</style>
+</head>
+
+<body>
+
+<div class="booking-container">
+
+{% if event.image %}
+<img src="{{ event.image.url }}" class="event-image-header">
+{% else %}
+<img src="{% static 'tickets/picture/default.jpg' %}" class="event-image-header">
+{% endif %}
+
+<div class="booking-content">
+
+<h2>🎟️ Reserve Your Seat - {{ event.title }}</h2>
+
+<div class="event-summary">
+    <p><strong>Date:</strong> {{ event.event_datetime|date:"F d, Y" }}</p>
+    <p><strong>Time:</strong> {{ event.event_datetime|time:"H:i" }}</p>
+    <p><strong>Campus:</strong> {{ event.campus }}</p>
+    <p><strong>Location:</strong> {{ event.location }}</p>
+
+    {% if selected_seat %}
+    <p><strong>Price:</strong> Rs {{ ticket_price }}
+        {% if selected_seat.ticket_type == "VIP" %}
+            (VIP Seat 👑)
+        {% endif %}
+    </p>
+{% else %}
+    <p><strong>Price:</strong> Rs {{ event.price }}</p>
+{% endif %}
+</div>
+
+<!-- SEAT DISPLAY FIX -->
+<div class="seat-display" id="seatDisplay">
+    {% if selected_seat %}
+        Seat: {{ selected_seat.seat_number }}
+    {% else %}
+        No seat selected
+    {% endif %}
+</div>
+
+{% if messages %}
+<div class="messages">
+{% for message in messages %}
+{{ message }}
+{% endfor %}
+</div>
+{% endif %}
+
+{% if conflicting_event %}
+<div id="conflictBox" style="
+    background:#fff3cd;
+    border:1px solid #ffeeba;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    text-align:center;
+">
+   <p>
+⚠️Notice: You already have another event scheduled on the same day.
+<br>
+<b>{{ conflicting_event.title }}</b>
+<br>
+{{ conflicting_event.event_datetime|date:"F d, Y" }}
+at {{ conflicting_event.event_datetime|time:"H:i" }}
+</p>
+
+<p style="margin-top:10px; font-weight:500;">
+You are allowed to continue booking this event if you still wish to proceed.
+</p>
+    
+</div>
+{% endif %}
+
+<form method="POST">
+{% csrf_token %}
+
+<input type="hidden" name="seat_id" value="{% if selected_seat %}{{ selected_seat.id }}{% endif %}">
+
+<h3 style="margin-top:30px; font-family:'Playfair Display',serif; color:var(--deep-blue);">
+    💳 Payment Details
+</h3>
+
+
+
+    <!-- Payment Method -->
+    <div class="payment-methods">
+
+        <!-- Card Option -->
+        <label class="payment-option">
+            <input type="radio" name="payment_method" value="card" checked onclick="togglePayment()">
+            
+            <span class="payment-content">
+                Credit / Debit Card
+                <span class="card-logos">
+                    <img src="{% static 'tickets/picture/visa.png' %}" alt="Visa">
+                    <img src="{% static 'tickets/picture/mastercard.png' %}" alt="Mastercard">
+                </span>
+            </span>
+        </label>
+
+        <!-- PayPal Option -->
+        <label class="payment-option">
+            <input type="radio" name="payment_method" value="paypal" onclick="togglePayment()">
+            
+            <span class="payment-content">
+                PayPal
+                <span class="card-logos">
+                    <img src="{% static 'tickets/picture/paypal.png' %}" alt="PayPal">
+                </span>
+            </span>
+        </label>
+
+    </div>
+
+    <!-- Card Section -->
+    <div id="cardSection">
+
+    <label>Card Number</label>
+    <input type="text" name="card_number" id="cardNumber"
+        placeholder="1234 5678 9012 3456"
+        maxlength="19">
+
+    <div id="cardTypeDisplay" style="font-size:14px; margin-bottom:20px; color:#666;"></div>
+
+    <div class="expiry-cvv">
+        <div>
+            <label>Expiry Date</label>
+            <input type="text" name="expiry" id="expiry"
+                placeholder="MM/YY" maxlength="5" required>
+        </div>
+
+        <div>
+            <label>CVV</label>
+            <input type="text" name="cvv" id="cvv"
+                placeholder="123" maxlength="4" required>
+        </div>
+    </div>
+
+    </div>
+
+<button type="submit">Confirm Booking</button>
+
+</form>
+</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.querySelector("form");
+    
+    const cardSection = document.getElementById("cardSection");
+    const expiry = document.getElementById("expiry");
+    const cvv = document.getElementById("cvv");
+
+  
+
+    // ======================
+    // PAYMENT TOGGLE
+    // ======================
+    window.togglePayment = function () {
+        const method = document.querySelector('input[name="payment_method"]:checked').value;
+        cardSection.style.display = (method === "paypal") ? "none" : "block";
+    };
+
+    // ======================
+    // EXPIRY FORMAT MM/YY
+    // ======================
+    if (expiry) {
+        expiry.addEventListener("input", function (e) {
+            let value = e.target.value.replace(/\D/g, "");
+
+            if (value.length > 2) {
+                value = value.slice(0, 2) + "/" + value.slice(2, 4);
+            }
+
+            e.target.value = value;
+        });
+    }
+
+    // ======================
+    // CVV ONLY NUMBERS
+    // ======================
+    if (cvv) {
+        cvv.addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/\D/g, "");
+        });
+    }
+
+    // ======================
+    // FORM SUBMIT HANDLER
+    // ======================
+    form.addEventListener("submit", function (e) {
+    const method = document.querySelector('input[name="payment_method"]:checked').value;
+
+    
+
+        //   CARD VALIDATION 
+        if (method === "card") {
+
+            const expiryVal = expiry.value;
+            const cvvVal = cvv.value;
+
+            if (!/^\d{2}\/\d{2}$/.test(expiryVal)) {
+                alert("Invalid expiry format (MM/YY)");
+                e.preventDefault();
+                return;
+            }
+
+            let [month, year] = expiryVal.split("/").map(Number);
+
+            if (month < 1 || month > 12) {
+                alert("Invalid month");
+                e.preventDefault();
+                return;
+            }
+
+            const now = new Date();
+            const currentYear = now.getFullYear() % 100;
+            const currentMonth = now.getMonth() + 1;
+
+            if (year < currentYear || (year === currentYear && month < currentMonth)) {
+                alert("Card expired");
+                e.preventDefault();
+                return;
+            }
+
+            if (!/^\d{3,4}$/.test(cvvVal)) {
+                alert("Invalid CVV");
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+
+   
+    
+});
+</script>
+
+</body>
+</html>

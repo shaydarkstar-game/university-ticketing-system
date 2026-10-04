@@ -1,0 +1,488 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Events</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'tickets/css/homepage.css' %}">
+
+    <style>
+
+        
+        .events-hero { padding: 50px; background-color: #d5ba90; }
+        .events-hero h1 { color: #121c2b; font-family: 'Playfair Display', serif; }
+        .search-filter { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 0 80px 20px 80px; }
+        .search-filter input, .search-filter select { padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
+        .search-filter input { width: 300px; }
+        .search-filter select { background-color: #fff; cursor: pointer; }
+        .events-section { padding: 20px 80px 60px 80px; }
+        .category-block { margin-bottom: 70px; }
+        .category-title { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 25px; color: #121c2b; }
+        .events-grid { display: flex; flex-wrap: wrap; gap: 25px; }
+        .event-card { position: relative;  background-color: #121c2b; color: #fff; border-radius: 16px; overflow: hidden; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .event-card:hover { transform: translateY(-6px); box-shadow: 0 15px 40px rgba(0,0,0,0.35); }
+        .event-image { width: 100%; height: 190px; object-fit: cover; }
+        .event-content { padding: 18px; display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
+        .event-title { font-size: 20px; font-weight: 600; margin-bottom: 12px; font-family: 'Playfair Display', serif; }
+        .event-info p { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; opacity: 0.9; }
+        .event-info img { width: 18px; }
+        .event-footer { display: flex; justify-content: space-between; align-items: center; margin: 14px 0; }
+        .price { font-size: 18px; font-weight: 600; color: #7fffd4; display: flex; align-items: center; }
+        .price img { width: 18px; margin-right: 4px; }
+        .tickets-left { font-size: 14px; color: #ffffff; font-weight: 500; }
+        .event-buttons { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-book { flex: 1; background-color: #fff; color: darkblue; border: none; padding: 10px 0; border-radius: 8px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.3s ease; }
+        .btn-book:hover { background-color: #f2f2f2; transform: translateY(-2px); }
+        
+/* Sold Out button */
+.btn-book:disabled {
+    background-color: #ff4d4f;  
+    color: #ffffff;              
+    cursor: not-allowed;
+}
+
+/* Already booked button */
+.btn-book.booked {
+    background-color: #555;     
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+        .btn-details { flex: 1; background-color: #d5ba90; color: #fff; border: none; padding: 10px 0; border-radius: 8px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.3s ease; }
+        .btn-details:hover { background-color: #c4a472; transform: translateY(-2px); }
+        @media (max-width: 900px) {
+            .events-section { padding: 20px 25px 60px 25px; }
+            .event-card { flex: 1 1 100%; max-width: 100%; }
+            .search-filter { flex-direction: column; align-items: stretch; }
+            .search-filter input, .search-filter select { width: 100%; }
+        }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+        .modal-content { background-color: #ffffff; padding: 30px; width: 500px; max-width: 90%; border-radius: 12px; position: relative; animation: fadeIn 0.3s ease-in-out; }
+        .modal-content h2 { margin-bottom: 15px; color: #121c2b; }
+        .modal-content p { color: #333; line-height: 1.6; }
+        .close-btn { position: absolute; top: 12px; right: 15px; font-size: 22px; cursor: pointer; font-weight: bold; }
+        @keyframes fadeIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* HIGHLIGHT */
+        .highlight { background-color: yellow; color: black; font-weight: bold; }
+    
+        /* BACK TO TOP BUTTON */
+#backToTop {
+    display: none; /* Hidden by default */
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    z-index: 999;
+    font-size: 24px;
+    background-color: #d5ba90;
+    color: #fff;
+    border: none;
+    outline: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: background-color 0.3s, transform 0.3s;
+}
+#backToTop:hover {
+    background-color: #c4a472;
+    transform: translateY(-3px);
+}
+    
+.discount-badge{
+    position:absolute;
+    background:red;
+    color:white;
+    padding:5px 10px;
+    font-size:12px;
+    font-weight:bold;
+    border-radius:5px;
+    top:10px;
+    left:10px;
+    z-index: 5; 
+}
+
+
+
+/* Container for the video, centered */
+.event-video {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+/* Video  */
+.event-video video {
+    width: 60%;       
+    max-width: 800px; 
+    height: auto;      
+    object-fit: contain; /* show full video without cropping */
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .event-video video {
+        width: 80%;  
+    }
+}
+
+@media (max-width: 500px) {
+    .event-video video {
+        width: 95%;  
+    }
+}
+    
+    </style>
+</head>
+
+<body>
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="logo"><img src="{% static 'tickets/picture/logoudm.jpg' %}" alt="University Logo"></div>
+    <ul class="nav-links">
+        <li><a href="{% url 'tickets:home' %}" class="active">Home</a></li>
+        <li><a href="{% url 'tickets:events' %}">Events</a></li>
+        <!-- Show My Tickets only if user is logged in -->
+        {% if user.is_authenticated %}<li><a href="{% url 'tickets:my_tickets' %}">My Tickets</a></li>{% endif %}
+        <li><a href="{% url 'tickets:contact' %}">Contact</a></li>
+    </ul>
+    <div class="nav-icons">
+        
+        {% if user.is_authenticated and user.profile_picture %}
+<a href="{% url 'tickets:edit_profile' %}">
+<img src="{{ user.profile_picture.url }}" class="profile-icon">
+            </a>
+        {% else %}
+            <a href="{% url 'tickets:login' %}" class="account-btn">
+                <img src="{% static 'tickets/picture/account.png' %}" class="profile-icon" alt="Account">
+            </a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="events-hero">
+  <h1 style="color: white;">Discover Upcoming Events 🎉</h1>
+</section>
+<br>
+<br>
+<br> 
+
+
+<!-- EVENT VIDEO  -->
+<div class="event-video">
+    <video class="video-bg" autoplay muted loop playsinline>
+        <source src="{% static 'tickets/picture/eventvid3.mp4' %}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+<!-- SEARCH & FILTER -->
+<div class="search-filter">
+    <form method="get" action="{% url 'tickets:events' %}" style="display:flex; gap:15px; flex-wrap:wrap;">
+        <input type="text" id="searchInput" name="q" placeholder="Search events..." value="{{ q }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+
+       <input type="date" name="day" value="{{ selected_date }}">
+
+
+        <button type="submit" class="btn-details" style="padding:10px 20px;">Filter</button>
+    </form>
+</div>
+
+<!-- EVENTS -->
+<section class="events-section">
+    {% for category in categories %}
+        {% if category.annotated_events %}
+        <div class="category-block">
+            <h2 class="category-title">{{ category.name }}</h2>
+            <div class="events-grid">
+                {% for event in category.annotated_events %}
+                <div class="event-card" data-title="{{ event.title|lower }}" data-original-title="{{ event.title }}">
+                    {% if event.image %}
+                        <img src="{{ event.image.url }}" class="event-image" alt="{{ event.title }}">
+                    {% else %}
+                        <img src="{% static 'tickets/picture/default.jpg' %}" class="event-image" alt="{{ event.title }}">
+                    {% endif %}
+                    <div class="event-content">
+                        <h3 class="event-title">{{ event.title }}</h3>
+                        <div class="event-info">
+    <!-- Event Date -->
+    <p>
+        <img src="{% static 'tickets/picture/calendar.png' %}" alt="Date Icon">
+        {{ event.event_datetime|date:"M d, Y" }}
+    </p>
+
+    <!-- Event Time -->
+    <p>
+        <img src="{% static 'tickets/picture/clock.png' %}" alt="Clock Icon">
+        {{ event.event_datetime|time:"H:i" }} 
+        {% if event.end_time %}
+            - {{ event.end_time|time:"H:i" }}
+        {% else %}
+            - TBD
+        {% endif %}
+    </p>
+
+    <!-- Campus -->
+    <p>
+        <img src="{% static 'tickets/picture/building.png' %}" alt="Campus Icon">
+        {{ event.campus }}
+    </p>
+
+    <!-- Location -->
+    <p>
+        <img src="{% static 'tickets/picture/location.png' %}" alt="Location Icon">
+        {{ event.location }}
+    </p>
+</div>
+                        <div class="event-footer">
+                          
+
+<span class="price">
+
+{% if event.discount_price and event.discount_end %}
+
+<div class="discount-badge">Limited Offer</div>
+
+<span class="original-price" style="text-decoration:line-through;color:#bbb;">
+Rs {{ event.price }}
+</span>
+
+<span class="discount-price" style="color:#00ff9d;font-weight:bold;margin-left:5px;">
+Rs {{ event.discount_price }}
+</span>
+
+{% else %}
+
+<span class="original-price">
+Rs {{ event.price }}
+</span>
+
+{% endif %}
+
+</span>
+
+
+{% if event.discount_end %}
+<p class="countdown"
+data-end="{{ event.discount_end|date:'Y-m-d\\TH:i:s' }}"
+style="color:#ffcc00;font-size:13px;">
+</p>
+{% endif %}
+
+
+ <span class="tickets-left {% if event.tickets_left <= 5 %}low-seats{% endif %}">
+    {% if event.tickets_left > 0 %}
+        {% if event.tickets_left <= 5 %}
+            {{ event.tickets_left }} left!
+        {% else %}
+            {{ event.tickets_left }} seats left
+        {% endif %}
+    {% endif %}
+</span>
+                        </div>
+                        <div class="event-buttons">
+                            {% if event.tickets_left <= 0 %}
+                                <button class="btn-book" disabled>Sold Out</button>
+                            {% elif event.is_booked %}
+                                <button class="btn-book booked" disabled>Booked</button>
+                            {% else %}
+                                <a href="{% url 'tickets:choose_seat' event.id %}" class="btn-book" style="text-decoration: none;">Book</a>
+                            {% endif %}
+                            <button type="button" class="btn-details open-modal" data-title="{{ event.title }}" data-description="{{ event.description|escapejs }}">More Details</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="logo"><img src="{% static 'tickets/picture/logoudm.jpg' %}" alt="University Logo"></div>
+        <div class="footer-left">
+            <h4>Université des Mascareignes</h4>
+            <p>© 2026 Ticket Hub. All Rights Reserved.<br>Making campus events accessible to every student.</p>
+        </div>
+        <div class="footer-center">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="{% url 'tickets:home' %}">Home</a></li>
+                <li><a href="{% url 'tickets:events' %}">Events</a></li>
+                <li><a href="{% url 'tickets:contact' %}">Contact</a></li>
+            </ul>
+        </div>
+        <div class="footer-right">
+            <h4>Follow Us</h4>
+            <div class="social-icons">
+    <a href="https://www.facebook.com" target="_blank">
+        <img src="{% static 'tickets/picture/facebook.png' %}">
+    </a>
+
+    <a href="https://www.instagram.com" target="_blank">
+        <img src="{% static 'tickets/picture/instagram.png' %}">
+    </a>
+
+    <a href="https://www.twitter.com" target="_blank">
+        <img src="{% static 'tickets/picture/twitter.png' %}">
+    </a>
+</div>
+        </div>
+    </div>
+</footer>
+
+<!-- EVENT DETAILS MODAL -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <p id="modalDescription"></p>
+    </div>
+</div>
+
+
+<!-- BACK TO TOP BUTTON -->
+<button id="backToTop" title="Go to top">⬆️</button>
+
+<!-- ================= JAVASCRIPT FEATURES =================
+Handles:
+- modal popup
+- live search filtering
+- countdown timer
+- back to top button
+-->
+<script>
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    // ===== MODAL =====
+    // Open modal with event details
+    const modal = document.getElementById("eventModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalDescription = document.getElementById("modalDescription");
+    const closeBtn = document.querySelector(".close-btn");
+
+    // Close modal
+    document.querySelectorAll(".open-modal").forEach(button => {
+        button.addEventListener("click", function() {
+            modalTitle.textContent = this.dataset.title;
+            modalDescription.textContent = this.dataset.description;
+            modal.style.display = "flex";
+        });
+    });
+
+    closeBtn.addEventListener("click", () => modal.style.display = "none");
+    window.addEventListener("click", e => {
+        if (e.target === modal) modal.style.display = "none";
+    });
+
+    // ===== LIVE SEARCH =====
+    const searchInput = document.getElementById("searchInput");
+
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    searchInput.addEventListener("input", function() {
+        const query = this.value.toLowerCase();
+        const categories = document.querySelectorAll('.category-block');
+
+        categories.forEach(cat => {
+            const grid = cat.querySelector('.events-grid');
+            const cards = Array.from(grid.querySelectorAll('.event-card'));
+            const matching = [];
+            const nonMatching = [];
+
+            cards.forEach(card => {
+                const title = card.dataset.title.toLowerCase();
+                const originalTitle = card.dataset.originalTitle;
+                const titleElem = card.querySelector('.event-title');
+
+                if (query !== "" && title.includes(query)) {
+                    matching.push(card);
+                    const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+                    titleElem.innerHTML = originalTitle.replace(regex, `<span class="highlight">$1</span>`);
+                } else {
+                    nonMatching.push(card);
+                    titleElem.textContent = originalTitle;
+                }
+            });
+
+            // Reorder: matching first
+            grid.innerHTML = '';
+            matching.forEach(c => grid.appendChild(c));
+            nonMatching.forEach(c => grid.appendChild(c));
+
+            // Hide category if no matches
+            cat.style.display = (query !== "" && matching.length === 0) ? "none" : "block";
+        });
+    });
+
+    // ===== BACK TO TOP =====
+    const backToTopBtn = document.getElementById("backToTop");
+    window.addEventListener("scroll", () => {
+        backToTopBtn.style.display = (window.scrollY > 200) ? "block" : "none";
+    });
+    backToTopBtn.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // ===== DISCOUNT COUNTDOWN =====
+    function updateCountdowns() {
+        document.querySelectorAll('.countdown').forEach(el => {
+            const endTime = new Date(el.dataset.end).getTime();
+            const distance = endTime - Date.now();
+            const card = el.closest(".event-card");
+            const originalPrice = card.querySelector(".original-price");
+            const discountPrice = card.querySelector(".discount-price");
+
+            if (distance <= 0) {
+                el.textContent = "Offer ended";
+                if (originalPrice) {
+                    originalPrice.style.textDecoration = "none";
+                    originalPrice.style.color = "#7fffd4";
+                }
+                if (discountPrice) discountPrice.remove();
+            } else {
+                const days = Math.floor(distance / (1000*60*60*24));
+                const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+                const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
+                const seconds = Math.floor((distance % (1000*60)) / 1000);
+
+                el.textContent = `${days > 0 ? days + "d " : ""}⏳ ${hours}h ${minutes}m ${seconds}s`;
+            }
+        });
+    }
+
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+
+});
+
+
+
+</script>
+
+</body>
+</html>

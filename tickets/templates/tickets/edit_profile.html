@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        /* ================= DASHBOARD PAGE ================= */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121c2b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* DASHBOARD CARD */
+        .dashboard-card {
+            background-color: #ffffff;
+            width: 420px;
+            padding: 40px 35px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(18, 28, 43, 0.1);
+            transition: all 0.3s ease;
+            border-top: 5px solid #d5ba90;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* PROFILE IMAGE */
+        .profile-pic {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #d5ba90;
+            margin-bottom: 20px;
+        }
+
+        /* NAME */
+        .dashboard-card h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #121c2b;
+            margin-bottom: 10px;
+        }
+
+        /* TEXT */
+        .dashboard-card p {
+            font-size: 14px;
+            color: #444;
+            margin: 8px 0 20px 0;
+        }
+
+        /* PROFILE FORM */
+        .dashboard-card form {
+            margin-top: 10px;
+        }
+
+        .upload-btn {
+            margin-top: 10px;
+            padding: 12px 28px;
+            background-color: #121c2b;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background-color: #c4a472;
+            transform: translateY(-3px);
+        }
+
+        /* LOGOUT BUTTON */
+        .logout-btn {
+            margin-top: 25px;
+            padding: 12px 28px;
+            background-color: #121c2b;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #0d1522;
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="dashboard-card">
+
+    <!-- Profile Picture -->
+     {% if request.user.profile_picture %}
+    
+    <img src="{{ request.user.profile_picture.url }}" class="profile-pic">
+{% else %}
+    <img src="{% static 'tickets/picture/account.png' %}" class="profile-pic" alt="Default Profile Picture">
+{% endif %}
+    <!-- User Info -->
+    <h2>{{ request.user.first_name }} {{ request.user.last_name }}</h2>
+    <p>{{ request.user.email }}</p>
+
+    <!-- Upload Profile Picture -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.profile_picture }}
+        <button type="submit" class="upload-btn">
+            Change Profile Picture
+        </button>
+    </form>
+
+    <!-- Back to Homepage -->
+    <a href="{% url 'tickets:home' %}" 
+       style="display:inline-block;margin-top:20px;text-decoration:none;padding:12px 28px;background:#c4a472;color:#fff;border-radius:8px;">
+        Back to Homepage
+    </a>
+
+    <!-- Logout -->
+    <form method="POST" action="{% url 'tickets:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">
+            Logout
+        </button>
+    </form>
+
+</div>
+
+
+
+
+</body>
+</html>

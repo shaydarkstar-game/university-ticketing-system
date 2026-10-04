@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ event.title }} Report</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f4f6f9;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+
+        .card {
+            padding: 20px;
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .upcoming { background-color: #2ecc71; color: white; }
+        .finished { background-color: #e74c3c; color: white; }
+
+        hr {
+            margin: 40px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>{{ event.title }} - Advanced Report</h1>
+
+
+{% if event.image %}
+    <img src="{{ event.image.url }}" width="250">
+{% endif %}
+<br>
+<br>
+<!-- ================= EVENT SUMMARY ================= -->
+
+<!-- ================= SUMMARY ================= -->
+
+<div class="card">
+    <h2>Event Summary</h2>
+
+    <p><strong>Status:</strong>
+        {% if event.event_datetime < now %}
+            Finished
+        {% else %}
+            Upcoming
+        {% endif %}
+    </p>
+    <p><strong>Event ID:</strong> {{ event.id }}</p>
+
+    <p><strong>Start:</strong> {{ event.event_datetime|date:"d/m/Y H:i" }}</p>
+
+    <!-- FIXED END TIME -->
+    <p><strong>End Time:</strong>
+    {% if event.end_time %}
+        {{ event.end_time }}
+    {% else %}
+        Not Set
+    {% endif %}
+</p>
+
+
+
+    <p><strong>Location:</strong> {{ event.location }}</p>
+    <p><strong>Initial Seats:</strong> {{ initial_seats }}</p>
+    <p><strong>Available Seats:</strong> {{ available_seats }}</p>
+    <p><strong>Description:</strong> {{ event_description }}</p>
+
+</div>
+
+<div class="card">
+    <h2>Tickets Sold Information</h2>
+
+   <p><strong>Total Tickets Sold:</strong> {{ total_tickets_sold|default:0 }}</p>
+<p><strong>VIP Tickets:</strong> {{ vip_count|default:0 }}</p>
+<p><strong>Standard Tickets:</strong> {{ standard_count|default:0 }}</p>
+
+ 
+</div>
+
+<!-- ================= REVENUE BREAKDOWN ================= -->
+
+<div class="card">
+    <h2>Revenue Breakdown</h2>
+
+    <p><strong>VIP Revenue:</strong> {{ vip_revenue|default:0|floatformat:2 }}</p>
+<p><strong>Standard Revenue:</strong> {{ standard_revenue|default:0|floatformat:2 }}</p>
+<p><strong>Total Revenue:</strong> {{ total_revenue|default:0|floatformat:2 }}</p>
+    <p><strong>Profit (VIP - Standard):</strong> {{ profit }}</p>
+</div>
+
+<!-- ================= TOP BUYERS ================= -->
+
+<div class="card">
+    <h2>Top Buyers</h2>
+
+    <table>
+        <tr>
+            <th>User</th>
+            <th>Tickets Bought</th>
+            <th>Total Spent</th>
+        </tr>
+
+        {% for buyer in top_buyers %}
+        <tr>
+           <td>
+    {{ buyer.user__first_name }} {{ buyer.user__last_name|default:buyer.user__username }}
+</td>
+            
+            <td>{{ buyer.tickets_count }}</td>
+            <td>{{ buyer.total_spent }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No buyers yet</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<hr>
+
+<!-- ================= VIP TICKETS ================= -->
+
+<div class="card">
+<h2>VIP Tickets</h2>
+
+<table>
+<tr>
+    <th>Seat</th>
+    <th>User</th>
+    <th>Price</th>
+    <th>Purchased At</th>
+</tr>
+
+{% for t in vip_tickets %}
+<tr>
+    <td>{{ t.seat.seat_number }}</td>
+    <td>{{ t.user.first_name }} {{ t.user.last_name }}</td>
+    <td>{{ t.price }}</td>
+    <td>{{ t.purchased_at|date:"d/m/Y H:i" }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4">No VIP tickets sold</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<!-- ================= STANDARD TICKETS ================= -->
+
+<div class="card">
+<h2>Standard Tickets</h2>
+
+<table>
+<tr>
+    <th>Seat</th>
+    <th>User</th>
+    <th>Price</th>
+    <th>Purchased At</th>
+</tr>
+
+{% for t in standard_tickets %}
+<tr>
+    <td>{{ t.seat.seat_number }}</td>
+    <td>{{ t.user.first_name }} {{ t.user.last_name }}</td>
+    <td>{{ t.price }}</td>
+    <td>{{ t.purchased_at|date:"d/m/Y H:i" }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4">No Standard tickets sold</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<hr>
+
+<!-- ================= GROUPED BY PRICE ================= -->
+
+<div class="card">
+<h2>Grouped by Price</h2>
+
+{% for price, group in price_groups.items %}
+<h3>Price: {{ price }}</h3>
+
+<table>
+<tr>
+    <th>Seat</th>
+    <th>User</th>
+    <th>Purchased</th>
+</tr>
+
+{% for t in group %}
+<tr>
+    <td>{{ t.seat.seat_number }}</td>
+    <td>{{ t.user.first_name }} {{ t.user.last_name }}</td>
+    <td>{{ t.purchased_at|date:"d/m/Y H:i" }}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% empty %}
+<p>No tickets to group.</p>
+{% endfor %}
+</div>
+
+<hr>
+
+<!-- ================= PRICE HISTORY ================= -->
+
+<div class="card">
+<h2>Price Change History</h2>
+
+<table>
+<tr>
+    <th>Old Price</th>
+    <th>New Price</th>
+    <th>Date</th>
+</tr>
+
+{% for change in event.price_history.all %}
+<tr>
+    <td>{{ change.old_price }}</td>
+    <td>{{ change.new_price }}</td>
+    <td>{{ change.changed_at|date:"d/m/Y H:i" }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="3">No changes</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+
+
+</body>
+</html>
+
+

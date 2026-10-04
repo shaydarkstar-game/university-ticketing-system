@@ -1,0 +1,268 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Reservation Confirmed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Cormorant+Garamond:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+
+/* ===== OLD MONEY PALETTE ===== */
+:root{
+    --deep-blue:#1f2a38;
+    --charcoal-blue:#2c3a4a;
+    --coffee:#c6a87d;
+    --warm-beige:#e8dcc8;
+    --soft-cream:#f5efe6;
+}
+
+/* ===== BODY ===== */
+body{
+    margin:0;
+    background:linear-gradient(135deg,var(--deep-blue),var(--charcoal-blue));
+    font-family:'Cormorant Garamond', serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+/* ===== CONTAINER ===== */
+.success-container{
+    max-width:720px;
+    width:90%;
+    background:var(--soft-cream);
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 25px 60px rgba(0,0,0,0.4);
+    animation:fadeIn .4s ease;
+   
+}
+
+
+.success-container {
+    position: relative; /* needed for z-index */
+    z-index: 1;         /* above video */
+}
+
+#paymentVideo {
+    z-index: 0;         /* behind everything */
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(20px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* ===== IMAGE HEADER ===== */
+.event-image-header{
+    width:100%;
+    height:240px;
+    object-fit:cover;
+    filter:brightness(85%);
+}
+
+/* ===== CONTENT ===== */
+.success-content{
+    padding:40px;
+    text-align:center;
+}
+
+h2{
+    font-family:'Playfair Display', serif;
+    font-size:28px;
+    margin-bottom:15px;
+    color:var(--deep-blue);
+}
+
+.confirm-text{
+    font-size:18px;
+    margin-bottom:25px;
+}
+
+/* ===== TICKET BOX ===== */
+.ticket-box{
+    background:#fffdf8;
+    border:1px solid #d8cbb7;
+    border-radius:14px;
+    padding:25px;
+    margin-bottom:30px;
+    text-align:left;
+}
+
+.ticket-box h3{
+    font-family:'Playfair Display', serif;
+    margin-bottom:15px;
+    color:var(--deep-blue);
+}
+
+.ticket-box ul{
+    padding-left:18px;
+    margin-bottom:20px;
+}
+
+.ticket-box li{
+    margin-bottom:8px;
+    font-size:16px;
+}
+
+/* Divider */
+.divider{
+    height:1px;
+    background:#d8cbb7;
+    margin:20px 0;
+}
+
+/* Payment Section */
+.payment-method{
+    text-align:center;
+}
+
+.payment-method img{
+    margin-top:10px;
+}
+
+/* ===== BUTTONS ===== */
+.success-buttons{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.success-buttons a{
+    text-decoration:none;
+    padding:14px 30px;
+    border-radius:10px;
+    font-family:'Playfair Display', serif;
+    font-size:16px;
+    transition:all .3s ease;
+}
+
+/* Primary */
+.btn-primary{
+    background:var(--deep-blue);
+    color:white;
+}
+
+.btn-primary:hover{
+    background:var(--coffee);
+    color:var(--deep-blue);
+}
+
+/* Secondary */
+.btn-secondary{
+    background:transparent;
+    border:1px solid var(--deep-blue);
+    color:var(--deep-blue);
+}
+
+.btn-secondary:hover{
+    background:var(--deep-blue);
+    color:white;
+}
+
+</style>
+</head>
+<body>
+    <!-- Background Video -->
+
+
+<div class="success-container">
+
+    <!-- Event Image -->
+    {% if event.image %}
+        <img src="{{ event.image.url }}" class="event-image-header">
+    {% else %}
+        <img src="{% static 'tickets/picture/default.jpg' %}" class="event-image-header">
+    {% endif %}
+
+    <div class="success-content">
+
+        <h2>Reservation Confirmed</h2>
+
+        <p class="confirm-text">
+            Your seat has been secured for <strong>{{ event.title }}</strong>.
+        </p>
+
+        {% if tickets %}
+        <div class="ticket-box">
+
+            <h3>Your Ticket Details</h3>
+
+            <ul>
+                {% for ticket in tickets %}
+                <li>
+                    🎟️ Seat {{ ticket.seat.seat_number }}
+                    - Reserved on {{ ticket.purchased_at|date:"F d, Y H:i" }}
+                </li>
+                {% endfor %}
+            </ul>
+
+            {% if card_type %}
+            <div class="divider"></div>
+
+            <div class="payment-method">
+                <h3>Payment Method</h3>
+
+                {% if card_type == "visa" %}
+                    <img src="{% static 'tickets/picture/visa.png' %}" width="80">
+                    <p>Paid with Visa</p>
+
+                {% elif card_type == "mastercard" %}
+                    <img src="{% static 'tickets/picture/mastercard.png' %}" width="80">
+                    <p>Paid with Mastercard</p>
+
+                {% elif card_type == "paypal" %}
+                    <img src="{% static 'tickets/picture/paypal.png' %}" width="80">
+                    <p>Paid with PayPal</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+        {% endif %}
+
+        <div class="success-buttons">
+            <a href="{% url 'tickets:my_tickets' %}" class="btn-primary">
+                View My Tickets
+            </a>
+
+            <a href="{% url 'tickets:events' %}" class="btn-secondary">
+                Return to Events
+            </a>
+        </div>
+
+    </div>
+</div>
+<!-- Confetti Canvas -->
+<canvas id="confetti-canvas" style="
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index: 2;
+"></canvas>
+
+
+<!-- Confetti Script -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+    const canvas = document.getElementById('confetti-canvas');
+    const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+
+    // Fire confetti just ONCE
+    myConfetti({
+        particleCount: 150,   // total particles
+        spread: 100,          // spread angle
+        origin: { y: 0.6 }    // vertical starting position
+    });
+</script>
+</body>
+</html>

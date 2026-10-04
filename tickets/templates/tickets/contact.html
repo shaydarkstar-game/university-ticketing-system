@@ -1,0 +1,284 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'tickets/css/homepage.css' %}">
+    <link rel="stylesheet" href="{% static 'tickets/css/contact.css' %}">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ================= INLINE MAPS + CONTACT STYLE ================= */
+
+        .contact-section {
+            background-color: #f5f3f5;
+            padding: 100px 50px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .contact-layout {
+            display: flex;
+            gap: 80px;
+            max-width: 1400px;
+            margin: auto;
+            flex-wrap: wrap;
+        }
+
+        .email-link {
+    color: #bfa046;        /* Elegant gold color */
+    text-decoration: none;  /* Remove underline */
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.email-link:hover {
+    color: #1c1c1c;        /* Darker on hover */
+    text-decoration: underline;
+}
+
+        /* LEFT SIDE CONTACT INFO */
+        .contact-left {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .contact-left h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            color: #1f2a38;
+            margin-bottom: 10px;
+        }
+
+        .gold-line {
+            width: 70px;
+            height: 2px;
+            background-color: #bfa046;
+            margin-bottom: 25px;
+        }
+
+        .contact-block {
+            margin-bottom: 25px;
+        }
+
+        .contact-block h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            letter-spacing: 2px;
+            color: #222;
+            margin-bottom: 8px;
+        }
+
+        .contact-block p {
+            color: #555;
+            margin: 0;
+        }
+
+        /* RIGHT SIDE MAPS */
+        .contact-right {
+            flex: 2;
+            min-width: 600px;
+        }
+
+        .maps-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .map-box {
+            flex: 1;
+            min-width: 200px;
+            border: 1px solid #e5e0d6;
+            padding: 10px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .map-box h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #222;
+        }
+
+        .map-box iframe {
+            width: 100%;
+            height: 220px;
+            border: none;
+        }
+
+        .map-box:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            transform: translateY(-3px);
+        }
+
+        /* RESPONSIVE */
+        @media screen and (max-width: 1100px) {
+            .contact-layout {
+                flex-direction: column;
+            }
+
+            .maps-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="logo">
+        <img src="{% static 'tickets/picture/logoudm.jpg' %}" alt="University Logo">
+    </div>
+
+    <ul class="nav-links">
+        <li><a href="{% url 'tickets:home' %}" class="active">Home</a></li>
+        <li><a href="{% url 'tickets:events' %}">Events</a></li>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'tickets:my_tickets' %}">My Tickets</a></li>
+        {% endif %}
+        <li><a href="{% url 'tickets:contact' %}">Contact</a></li>
+    </ul>
+
+    <div class="nav-icons">
+        {% if user.is_authenticated and user.profile_picture %}
+<a href="{% url 'tickets:edit_profile' %}">
+<img src="{{ user.profile_picture.url }}" class="profile-icon">
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}" class="account-btn">
+                <img src="{% static 'tickets/picture/account.png' %}" class="profile-icon" alt="Account">
+            </a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- CONTACT SECTION -->
+<section class="contact-section">
+    <div class="contact-layout">
+
+        <!-- LEFT SIDE -->
+        <div class="contact-left">
+            <h2>Contact Information</h2>
+            <div class="gold-line"></div>
+
+            <div class="contact-block">
+                <h4>Email</h4>
+                <p><a href="mailto:support@udm.ac.mu" class="email-link"> udmcrh@nulludm.ac.mu</a></p>
+            </div>
+            <div class="contact-block">
+                <h4>Phone</h4>
+                <p>460 9500</p>
+            </div>
+
+            <div class="contact-block">
+                <h4>Our Locations</h4>
+                <p>Pamplemousses Campus</p>
+                <p>Rose-Hill Campus</p>
+                <p>Bel Air Campus</p>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="contact-right">
+            <div class="maps-row">
+
+                <div class="map-box">
+                    <h4>Pamplemousses</h4>
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3746.767620954071!2d57.5733143!3d-20.1019986!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x217c5467d012057f%3A0x8ee8763eb8c4195e!2sUniversit%C3%A9%20des%20Mascareignes%2C%20Pamplemousses%20Campus!5e0!3m2!1sen!2smu!4v1772014193503"
+                        allowfullscreen=""
+                        loading="lazy">
+                    </iframe>
+                </div>
+
+                <div class="map-box">
+                    <h4>Rose-Hill</h4>
+<iframe 
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3743.3543216641965!2d57.45119467650657!3d-20.24413488121606!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x217c44d051bc490d%3A0x86abd8e664d12112!2sUniversit%C3%A9%20Des%20Mascareignes%2C%20Head%20Office%20and%20Admission%20Department.%20Faculty%20of%20Engineering%20and%20ICT.!5e0!3m2!1sen!2smu!4v1772035376587!5m2!1sen!2smu"
+    width="100%"
+    height="250"
+    style="border:0;"
+    allowfullscreen=""
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade">
+</iframe>
+                </div>
+
+                <div class="map-box">
+                    <h4>Bel Air</h4>
+<iframe 
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3743.005363914825!2d57.75918259999999!3d-20.2586123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x217cf1e91a8e9f1f%3A0x50fa9464f12d455f!2sUniversit%C3%A9%20des%20Mascareignes!5e0!3m2!1sen!2smu!4v1772035226875!5m2!1sen!2smu"
+    width="100%"
+    height="250"
+    style="border:0;"
+    allowfullscreen=""
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade">
+</iframe>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+    <div class="footer-content">
+
+        <div class="logo">
+            <img src="{% static 'tickets/picture/logoudm.jpg' %}" alt="University Logo">
+        </div>
+
+        <div class="footer-left">
+            <h4>Université des Mascareignes</h4>
+            <p>
+                © 2026 Ticket Hub. All Rights Reserved.<br>
+                Making campus events accessible to every student.
+            </p>
+        </div>
+
+        <div class="footer-center">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="{% url 'tickets:home' %}">Home</a></li>
+                <li><a href="{% url 'tickets:events' %}">Events</a></li>
+                <li><a href="{% url 'tickets:contact' %}">Contact</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-right">
+            <h4>Follow Us</h4>
+            <div class="social-icons">
+    <a href="https://www.facebook.com" target="_blank">
+        <img src="{% static 'tickets/picture/facebook.png' %}">
+    </a>
+
+    <a href="https://www.instagram.com" target="_blank">
+        <img src="{% static 'tickets/picture/instagram.png' %}">
+    </a>
+
+    <a href="https://www.twitter.com" target="_blank">
+        <img src="{% static 'tickets/picture/twitter.png' %}">
+    </a>
+</div>
+        </div>
+
+    </div>
+</footer>
+
+</body>
+</html>
